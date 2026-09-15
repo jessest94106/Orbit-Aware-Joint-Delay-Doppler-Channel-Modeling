@@ -1,0 +1,65 @@
+figure,source,scenario,elevation_deg,value,unit,status
+13,Model,urban,10,-7.172088583574976,log10(s),model
+13,Model,urban,20,-7.556620747249036,log10(s),model
+13,Model,urban,30,-7.847049366530789,log10(s),model
+13,Model,urban,40,-8.09217004168911,log10(s),model
+13,Model,urban,50,-8.285581050862232,log10(s),model
+13,Model,urban,60,-8.394758420703475,log10(s),model
+13,Model,urban,70,-8.427606110371121,log10(s),model
+13,Model,urban,80,-8.430328903302517,log10(s),model
+13,Model,rural,10,-7.8759233369864745,log10(s),model
+13,Model,rural,20,-8.08550340536605,log10(s),model
+13,Model,rural,30,-8.16641440559467,log10(s),model
+13,Model,rural,40,-8.19682653901187,log10(s),model
+13,Model,rural,50,-8.20321355713161,log10(s),model
+13,Model,rural,60,-8.198987092782142,log10(s),model
+13,Model,rural,70,-8.191703679584956,log10(s),model
+13,Model,rural,80,-8.184740504387019,log10(s),model
+13,3GPP TR 38.811,urban,10,-7.97,log10(s),reference
+13,3GPP TR 38.811,urban,20,-8.12,log10(s),reference
+13,3GPP TR 38.811,urban,30,-8.21,log10(s),reference
+13,3GPP TR 38.811,urban,40,-8.31,log10(s),reference
+13,3GPP TR 38.811,urban,50,-8.37,log10(s),reference
+13,3GPP TR 38.811,urban,60,-8.39,log10(s),reference
+13,3GPP TR 38.811,urban,70,-8.38,log10(s),reference
+13,3GPP TR 38.811,urban,80,-8.35,log10(s),reference
+13,3GPP TR 38.811,dense urban,10,-7.12,log10(s),reference
+13,3GPP TR 38.811,dense urban,20,-7.28,log10(s),reference
+13,3GPP TR 38.811,dense urban,30,-7.45,log10(s),reference
+13,3GPP TR 38.811,dense urban,40,-7.73,log10(s),reference
+13,3GPP TR 38.811,dense urban,50,-7.91,log10(s),reference
+13,3GPP TR 38.811,dense urban,60,-8.14,log10(s),reference
+13,3GPP TR 38.811,dense urban,70,-8.23,log10(s),reference
+13,3GPP TR 38.811,dense urban,80,-8.28,log10(s),reference
+13,3GPP TR 38.811,rural,10,-9.55,log10(s),reference
+13,3GPP TR 38.811,rural,20,-8.68,log10(s),reference
+13,3GPP TR 38.811,rural,30,-8.46,log10(s),reference
+13,3GPP TR 38.811,rural,40,-8.36,log10(s),reference
+13,3GPP TR 38.811,rural,50,-8.29,log10(s),reference
+13,3GPP TR 38.811,rural,60,-8.26,log10(s),reference
+13,3GPP TR 38.811,rural,70,-8.22,log10(s),reference
+13,3GPP TR 38.811,rural,80,-8.2,log10(s),reference
+13,6G-NTN,urban,10,-7.31,log10(s),reference
+13,6G-NTN,urban,20,-7.52,log10(s),reference
+13,6G-NTN,urban,30,-7.62,log10(s),reference
+13,6G-NTN,urban,40,-7.74,log10(s),reference
+13,6G-NTN,urban,50,-7.82,log10(s),reference
+13,6G-NTN,urban,60,-7.85,log10(s),reference
+13,6G-NTN,urban,70,-7.86,log10(s),reference
+13,6G-NTN,urban,80,-7.88,log10(s),reference
+13,QuaDRiGa,urban,10,-8.299473314470179,log10(s),reference
+13,QuaDRiGa,urban,20,-8.148958316638188,log10(s),reference
+13,QuaDRiGa,urban,30,-8.060912687110347,log10(s),reference
+13,QuaDRiGa,urban,40,-7.998443318806197,log10(s),reference
+13,QuaDRiGa,urban,50,-7.949988312302169,log10(s),reference
+13,QuaDRiGa,urban,60,-7.910397689278357,log10(s),reference
+13,QuaDRiGa,urban,70,-7.87692429446305,log10(s),reference
+13,QuaDRiGa,urban,80,-7.847928320974207,log10(s),reference
+13,QuaDRiGa,rural,10,-7.11534292134321,log10(s),reference
+13,QuaDRiGa,rural,20,-7.0099824228608165,log10(s),reference
+13,QuaDRiGa,rural,30,-6.948350482191328,log10(s),reference
+13,QuaDRiGa,rural,40,-6.904621924378423,log10(s),reference
+13,QuaDRiGa,rural,50,-6.870703419825603,log10(s),reference
+13,QuaDRiGa,rural,60,-6.842989983708935,log10(s),reference
+13,QuaDRiGa,rural,70,-6.81955860733822,log10(s),reference
+13,QuaDRiGa,rural,80,-6.79926142589603,log10(s),reference
