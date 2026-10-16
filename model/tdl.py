@@ -49,7 +49,8 @@ class TDLChannel:
         return self._phase[path_id]
 
     def paths(self, t):
-        """Visible paths at time t: dict with mechanism (1 wall, 2 roof edge, 3 ground), tau [s], power, id, and los."""
+        """Visible paths at time t: dict with mechanism (1 wall, 2 roof edge, 3 ground, 4 over the wall that blocks the
+        direct path), tau [s], power, id, and los."""
         p = self.model.paths(t, self.city, geometric_blockage=True)
         los = bool(p['visible'][-1]); keep = p['visible'].copy(); keep[-1] = los     # ground bounce gated by the LoS event
         return dict(los=los, mechanism=p['mechanism'][keep], tau=p['tau'][keep], power=p['amp'][keep], id=p['id'][keep])
@@ -62,7 +63,7 @@ class TDLChannel:
         for kk, pid, tau, w in zip(k[inside], q['id'][inside], q['tau'][inside], q['power'][inside]):
             h[kk] += np.sqrt(w)*np.exp(1j*self.phase(int(pid)))*np.exp(-2j*np.pi*self.fc*tau)
         info = dict(t=float(t), elevation_deg=self.elevation(t), los=q['los'],
-                    n_wall=int(np.sum(q['mechanism'] == 1)), n_edge=int(np.sum(q['mechanism'] == 2)),
+                    n_wall=int(np.sum(q['mechanism'] == 1)), n_edge=int(np.sum(q['mechanism'] == 2)), n_block=int(np.sum(q['mechanism'] == 4)),
                     ground=bool(np.any(q['mechanism'] == 3)), power_nd=float(q['power'].sum()),
                     power_dropped=float(q['power'][~inside].sum()))
         return h, info

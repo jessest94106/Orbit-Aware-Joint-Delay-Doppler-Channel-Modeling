@@ -44,8 +44,8 @@ def job(j):
         if F(m)>EPS: hi=m
         else: lo=m
     T=.5*(lo+hi)
-    out=dict(T=T,frac={'g':W[ME==3].sum()/W.sum(),'w':W[ME==1].sum()/W.sum(),'e':W[ME==2].sum()/W.sum()},
-             mig={'g':F(T,ME==3),'w':F(T,ME==1),'e':F(T,ME==2)},
+    out=dict(T=T,frac={'g':W[ME==3].sum()/W.sum(),'w':W[ME==1].sum()/W.sum(),'e':W[ME==2].sum()/W.sum(),'b':W[ME==4].sum()/W.sum()},
+             mig={'g':F(T,ME==3),'w':F(T,ME==1),'e':F(T,ME==2),'b':F(T,ME==4)},
              wall_nudot_mHzps=float(np.sum(W[ME==1]*np.abs(RN[ME==1]))/max(W[ME==1].sum(),1e-300)*1e3),
              wall_taudot_nsps=float(np.sum(W[ME==1]*np.abs(RT[ME==1]))/max(W[ME==1].sum(),1e-300)*1e9),
              ground_nudot_mHzps=float(np.abs(RN[ME==3]).mean()*1e3),ncity=NC,npaths=int(len(W)),secs=time.time()-t_start)
@@ -59,7 +59,7 @@ if __name__=='__main__':
     out={'beta':B.tolist(),'meta':dict(eps=EPS,T_s_ns=33.3,sig_nu_Hz=SN,ncity=NC,evaluator='physical_model v2, rural lambda_1D 0.02/m')}
     for s,b,o in res:
         out.setdefault(f'{s}_T',[]).append(o['T'])
-        for k in ('g','w','e'): out.setdefault(f'{s}_frac_{k}',[]).append(o['frac'][k]); out.setdefault(f'{s}_mig_{k}',[]).append(o['mig'][k])
+        for k in ('g','w','e','b'): out.setdefault(f'{s}_frac_{k}',[]).append(o['frac'][k]); out.setdefault(f'{s}_mig_{k}',[]).append(o['mig'][k])
         out.setdefault(f'{s}_wall_nudot',[]).append(o['wall_nudot_mHzps']); out.setdefault(f'{s}_ground_nudot',[]).append(o['ground_nudot_mHzps'])
     json.dump(out,open(OUT/f'tsta_v2_n{NC}.json','w'),indent=1)
     for s in ('urban','rural'): print(s,'T',' '.join('%6.1f'%x for x in out[f'{s}_T']))

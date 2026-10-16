@@ -10,7 +10,7 @@ direct path in free space (direct path = 0 dB); no fading is drawn.
 Outputs data/model/cir_seed{SEED}.json with
   windows   : 'e20' and 'e80' = 100 s from beta_ele = 20 deg (ascending) and from 80 deg (through zenith,
               descending), sampled every 4 s: per sample t, beta_deg, los (bool) and the visible paths
-              (mechanism 1 wall / 2 roof edge / 3 ground, tau_ns, power, owner = index of the wall that owns the path).
+              (mechanism 1 wall / 2 roof edge / 3 ground / 4 over the blocking wall, tau_ns, power, owner = index of the wall that owns the path).
 Usage:
   python3 paper_delivery/evaluate/cir_realization.py run SEED        (paper seed 237; ~30 s)
   python3 paper_delivery/evaluate/cir_realization.py search N0 N1    (score seeds N0..N1-1 for the selection rule below)

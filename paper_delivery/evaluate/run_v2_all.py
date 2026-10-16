@@ -32,7 +32,7 @@ for b in BET:
             _, i1, i2 = np.intersect1d(p['id'], pp['id'], assume_unique=True, return_indices=True)
             _, j1, j2 = np.intersect1d(p['id'], pmn['id'], assume_unique=True, return_indices=True)
             tp = np.full(len(w), np.nan); tm = np.full(len(w), np.nan); tp[i1] = pp['tau'][i2]; tm[j1] = pmn['tau'][j2]
-            nu = -pm.FC*(tp-tm)/(2*DT); ok = np.isfinite(nu)
+            nu = -pm.FC*(tp-tm)/(2*DT); ok = np.isfinite(nu) & (mech != 4)     # LoS state: no blocking-wall path
             wl = w.copy(); wl[g] = Wg
             dump['tau'].append(p['tau'][ok]); dump['nu'].append(nu[ok]); dump['w'].append(wl[ok]/NC); dump['mech'].append(mech[ok])
     P /= NC; Pb /= NC; Nc /= NC

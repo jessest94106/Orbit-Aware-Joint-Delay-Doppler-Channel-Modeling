@@ -6,6 +6,8 @@ heights (draw_city), plus the ground plane.  Model.paths(t, city) returns, at ti
   mechanism 1 : specular wall reflection  (image of the terminal in the wall plane, at the antenna height),
   mechanism 2 : roof-edge diffraction     (exact finite-distance stationary point on the roof edge, UTD coefficient),
   mechanism 3 : ground reflection         (image of the terminal in the ground plane),
+  mechanism 4 : blocking-wall diffraction (NLoS only: over the roof edge of a wall that blocks the direct path, into
+                its shadow; exact stationary point on the edge, single knife-edge loss J(v) of ITU-R P.526),
 with relative power amp (direct path = 1), excess delay tau [s], analytic visibility probability prob
 (the finite-segment blockage rule of Sec. IV / App. B; the ground path carries P_LoS), and, when
 geometric_blockage=True, the ray-traced indicator visible against every other wall of the same city
@@ -112,20 +114,45 @@ class Model:
   ad=D2*R*R/(d1*d2*(d1+d2))
   v=qe-UE[:,None];te=((np.sum(v*v,axis=0)-2*np.sum(sg[:,None]*v,axis=0))/(d1+R)+d2)/C
 
+  # Blocking-wall diffraction: walls that block the direct path (same test as clear) diffract over their roof edge into
+  # the shadow, where mechanism 2 cannot reach (it needs the satellite and the terminal on the same side of the wall).
+  # Stationary point as above; power J(v) of a single knife edge, v = 2 sqrt(excess path / lambda) (ITU-R P.526 4.1).
+  den=cross(sg[:2,None],e[:2]);cen=np.array([x,y])
+  tb=np.divide(cross(cen,e[:2]),den,out=np.full(n,np.inf),where=abs(den)>1e-12)
+  ab=np.divide(cross(cen,sg[:2,None]),den,out=np.full(n,np.inf),where=abs(den)>1e-12);zb=UE[2]+tb*sg[2]
+  jj=np.flatnonzero((tb>1e-9)&(tb<1-1e-9)&(abs(ab)<=self.width/2)&(zb>=0)&(H>zb))
+  cb=np.array([x[jj],y[jj],H[jj]]);eb=e[:,jj]
+  def dblock(ell):
+   point=cb+eb*ell;v1=point-s[:,None];v2=point-UE[:,None]
+   d1=np.linalg.norm(v1,axis=0);d2=np.linalg.norm(v2,axis=0)
+   a1=np.sum(v1*eb,axis=0)/d1;a2=np.sum(v2*eb,axis=0)/d2
+   return a1+a2,(1-a1*a1)/d1+(1-a2*a2)/d2
+  fl,_=dblock(-self.width/2);fr,_=dblock(self.width/2)
+  ok=(fl<=0)&(fr>=0);jj=jj[ok];cb=cb[:,ok];eb=eb[:,ok]                      # no stationary point on the edge: dropped, as for mechanism 2
+  a=cb[0]*eb[0]+cb[1]*eb[1];eta=(sg/R)@eb
+  transverse=np.sqrt(np.maximum(np.sum((cb-UE[:,None])**2,axis=0)-a*a,1e-15))
+  lb=np.clip(eta*transverse/np.sqrt(1-eta*eta)-a,-self.width/2,self.width/2)
+  for _ in range(5):
+   f,fp=dblock(lb);lb=np.clip(lb-f/fp,-self.width/2,self.width/2)
+  qb=cb+eb*lb;d1=np.linalg.norm(qb-s[:,None],axis=0);d2=np.linalg.norm(qb-UE[:,None],axis=0)
+  v=qb-UE[:,None];tk=((np.sum(v*v,axis=0)-2*np.sum(sg[:,None]*v,axis=0))/(d1+R)+d2)/C
+  vk=2*np.sqrt(np.maximum(tk*C,0)*FC/C)
+  ak=10**(-(6.9+20*np.log10(np.sqrt((vk-.1)**2+1)+vk-.1))/10)*(R/(d1+d2))**2
+
   # Ground uses the image UE at z=-1.5 and the SAME LoS blockage event.
   gi=UE.copy();gi[2]=-UE[2];vg=gi-UE;rg=np.linalg.norm(s-gi)
   tg=(vg@vg-2*sg@vg)/(rg+R)/C
   ag=float(material.fresnel_pavg((s[2]+UE[2])/rg,3.5)*(R/rg)**2)
   pg=float(np.exp(-self.lambda1d*self.tail(UE[2])/np.tan(beta)))
-  owner=np.r_[ids,ii,-1];mechanism=np.r_[np.ones(len(ids),int),np.full(len(ii),2),3]
-  path_id=np.r_[2*ids,2*ii+1,2*n]
-  amp=np.r_[ar,ad,ag];tau=np.r_[tr,te,tg];prob=np.r_[self.visibility_probability(qr),self.visibility_probability(qe),pg]
-  points=np.concatenate([qr,qe,np.full((3,1),np.nan)],axis=1)
+  owner=np.r_[ids,ii,jj,-1];mechanism=np.r_[np.ones(len(ids),int),np.full(len(ii),2),np.full(len(jj),4),3]
+  path_id=np.r_[2*ids,2*ii+1,2*n+1+jj,2*n]
+  amp=np.r_[ar,ad,ak,ag];tau=np.r_[tr,te,tk,tg];prob=np.r_[self.visibility_probability(qr),self.visibility_probability(qe),self.visibility_probability(qb),pg]
+  points=np.concatenate([qr,qe,qb,np.full((3,1),np.nan)],axis=1)
   visible=np.ones(len(amp),bool)
   if geometric_blockage:
    for j,k in enumerate(owner[:-1]):visible[j]=self.clear(points[:,j],city,int(k))
    visible[-1]=self.clear(s,city)
-  weight=np.r_[city['weight'][ids],city['weight'][ii],1.]
+  weight=np.r_[city['weight'][ids],city['weight'][ii],city['weight'][jj],1.]
   assert np.all(np.isfinite(amp)) and np.all(amp>=0) and np.all(tau>=-1e-12)
   return dict(id=path_id,owner=owner,mechanism=mechanism,amp=amp,tau=tau,prob=prob,weight=weight,visible=visible,points=points,edge_stationarity_residual=derivative(ell)[0])
 

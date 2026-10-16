@@ -63,12 +63,12 @@ TAPS = np.array(TAPS); HF = np.array(HF); BER = np.array(BER); trel = ts-t0
 print(f'{len(ts)} snapshots in {time.time()-t_wall:.0f} s')
 
 # ---- 4. summary and figure ----
-los = np.array([i['los'] for i in INFO]); nw = np.array([i['n_wall'] for i in INFO]); ne = np.array([i['n_edge'] for i in INFO])
+los = np.array([i['los'] for i in INFO]); nw = np.array([i['n_wall'] for i in INFO]); ne = np.array([i['n_edge'] for i in INFO]); nb = np.array([i['n_block'] for i in INFO])
 ds = np.array([rms_delay_spread(h, T_S) for h in TAPS])*1e9
 pnd = np.array([i['power_nd'] for i in INFO]); dropped = np.array([i['power_dropped'] for i in INFO])
 from scipy.special import erfc; awgn_ber = 0.5*erfc(np.sqrt(10**(ESN0_DB/10)))                # QPSK, Gray, per bit
 print(f'elevation {INFO[0]["elevation_deg"]:.1f} -> {INFO[-1]["elevation_deg"]:.1f} deg; LoS clear in {los.mean()*100:.0f} % of snapshots; '
-      f'wall paths {nw.min()}-{nw.max()}, roof-edge paths {ne.min()}-{ne.max()}; non-direct power {10*np.log10(pnd.min()):.1f} to {10*np.log10(pnd.max()):.1f} dB '
+      f'wall paths {nw.min()}-{nw.max()}, roof-edge paths {ne.min()}-{ne.max()}, over the blocking wall {nb.min()}-{nb.max()}; non-direct power {10*np.log10(pnd.min()):.1f} to {10*np.log10(pnd.max()):.1f} dB '
       f'(dropped beyond {NTAPS} taps: max {dropped.max():.1e}); RMS delay spread {ds.min():.1f}-{ds.max():.1f} ns')
 print(f'QPSK OFDM at Es/N0 {ESN0_DB:g} dB: BER {BER.mean():.2e} (mean), {BER.max():.2e} (worst snapshot); AWGN reference {awgn_ber:.2e}')
 

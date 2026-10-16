@@ -2,7 +2,8 @@
 uniform PPP walls (physical_model.draw_city), wall image at the ANTENNA height, exact roof-edge stationary point
 (Newton), analytic finite-segment visibility probability (the GT-segment rule of Sec. IV / App. B), ground bounce
 gated by the LoS event, omni, 2 GHz, overhead pass.  Doppler by finite difference of each path's delay (dt = 50 ms).
-States: LoS = ground W_g + walls + edges; NLoS = walls + edges; per-state PDP (33 ns), DS, sigma_nu, T_c.
+States: LoS = ground W_g + walls + edges; NLoS = walls + edges + blocking-wall diffraction (mechanism 4, which exists
+only when the direct path is blocked, so its NLoS weight is its expectation / P_NLoS); per-state PDP (33 ns), DS, sigma_nu, T_c.
 Outputs data/model/eval29_SCENE_nNCITY_sSEED.json (per-elevation DS / sigma_nu / T_c per state, PDPs at PDP_E).
 Usage: python3 paper_delivery/evaluate/eval29.py SCENE NCITY SEED [ELEV ...]   (default elevations 10:5:80; PDPs are stored at 10/20/40/80 deg)
 Paper runs: urban 6000 3 / rural 6000 4 (all elevations, ~35 / 55 min on one core);
@@ -39,20 +40,21 @@ for b in BET:
         for k in ('T', 'N', 'W', 'mech'): acc[st][k] = np.concatenate(acc['nlos'][k]) if acc['nlos'][k] else np.zeros(0)
     T, N, W, MECH = acc['nlos']['T'], acc['nlos']['N'], acc['nlos']['W']/NC, acc['nlos']['mech']   # per-city expected
     Pw, Pe = W[MECH == 1].sum(), W[MECH == 2].sum()
-    r = dict(beta=float(b), E1=float(E1), Wg=float(Wg), Pw=float(Pw), Pe=float(Pe), Pnlos_los=float(Wg+Pw+Pe), Pnlos_nlos=float(Pw+Pe), nu_g_Hz=float(ng), tau_g_ns=float(tg*1e9))
+    L = MECH != 4; Wn = np.where(L, W, W/(1-E1)); Pb = Wn[~L].sum()     # mechanism 4: NLoS only, E[.]/P_NLoS
+    r = dict(beta=float(b), E1=float(E1), Wg=float(Wg), Pw=float(Pw), Pe=float(Pe), Pb=float(Pb), Pnlos_los=float(Wg+Pw+Pe), Pnlos_nlos=float(Pw+Pe+Pb), nu_g_Hz=float(ng), tau_g_ns=float(tg*1e9))
     # LoS state: ground atom (Wg) + walls + edges; direct path weight 1 at (0,0)
-    TL = np.r_[tg, T]; NL = np.r_[ng, N]; WL = np.r_[Wg, W]
+    TL = np.r_[tg, T[L]]; NL = np.r_[ng, N[L]]; WL = np.r_[Wg, W[L]]
     r['ds_los_ns'] = mom(np.r_[0., TL], np.r_[0., NL], np.r_[1., WL])[0]*1e9; r['dsp_los_Hz'] = mom(TL, NL, WL)[1]; r['Tc_los_s'] = 1/(2*np.pi*r['dsp_los_Hz'])
-    r['ds_nlos_ns'] = mom(T, N, W)[0]*1e9; r['dsp_nlos_Hz'] = mom(T, N, W)[1]; r['Tc_nlos_s'] = 1/(2*np.pi*r['dsp_nlos_Hz'])
-    TU = np.r_[tg, T]; WU = np.r_[E1*Wg, W]
-    r['ds_uncond_ns'] = mom(np.r_[0., TU], np.r_[0., NL], np.r_[E1, WU])[0]*1e9; r['dsp_uncond_Hz'] = mom(TU, NL, WU)[1]
+    r['ds_nlos_ns'] = mom(T, N, Wn)[0]*1e9; r['dsp_nlos_Hz'] = mom(T, N, Wn)[1]; r['Tc_nlos_s'] = 1/(2*np.pi*r['dsp_nlos_Hz'])
+    TU = np.r_[tg, T]; NU = np.r_[ng, N]; WU = np.r_[E1*Wg, W]
+    r['ds_uncond_ns'] = mom(np.r_[0., TU], np.r_[0., NU], np.r_[E1, WU])[0]*1e9; r['dsp_uncond_Hz'] = mom(TU, NU, WU)[1]
     r['dsp_wall_Hz'] = mom(T[MECH == 1], N[MECH == 1], W[MECH == 1])[1]; r['dsp_edge_Hz'] = mom(T[MECH == 2], N[MECH == 2], W[MECH == 2])[1] if Pe > 0 else None
     r['ds_wall_ns'] = mom(T[MECH == 1], N[MECH == 1], W[MECH == 1])[0]*1e9
     out['res'].append(r)
     if b in PDP_E:
         edges = np.arange(0, NB+1)*BIN
-        for st, TT, WW in (('los', TL, WL), ('nlos', T, W), ('uncond', TU, WU)):
+        for st, TT, WW in (('los', TL, WL), ('nlos', T, Wn), ('uncond', TU, WU)):
             h = np.histogram(TT, bins=edges, weights=WW/WW.sum())[0]
             out['pdp'][f'{scene}_{st}_{b:g}'] = dict(centers_ns=((edges[:-1]+0.5*BIN)*1e9).tolist(), p=h.tolist(), tail=float(WW[TT > edges[-1]].sum()/WW.sum()))
-    print(f"{scene:5s} {b:4.0f} E1 {E1:.3f} Wg {Wg:.4f} Pw {Pw:.4f} Pe {Pe:.2e} | DS los {r['ds_los_ns']:6.1f} nlos {r['ds_nlos_ns']:6.1f} ns | sig_nu los {r['dsp_los_Hz']:.4f} nlos {r['dsp_nlos_Hz']:.4f} Hz  [{time.time()-t_start:.0f}s]", flush=True)
+    print(f"{scene:5s} {b:4.0f} E1 {E1:.3f} Wg {Wg:.4f} Pw {Pw:.4f} Pe {Pe:.2e} Pb {Pb:.2e} | DS los {r['ds_los_ns']:6.1f} nlos {r['ds_nlos_ns']:6.1f} ns | sig_nu los {r['dsp_los_Hz']:.4f} nlos {r['dsp_nlos_Hz']:.4f} Hz  [{time.time()-t_start:.0f}s]", flush=True)
 json.dump(out, open(OUT/f'eval29_{scene}_n{NC}_s{SEED}.json', 'w'))
